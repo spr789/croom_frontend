@@ -7,6 +7,11 @@ UI design:
     - Generation Outage Entry
     - Bus Reactors Entry
     - Reports for shift operations - downloadable pdf - need to discuss later
+- Display log operations on the homepage 
+    - limit to either last 24 hours/ to be able to show on scrolling
+    - Time Stamp (in IST), Description/Event
+- one AI assistance tool at the bottom right 
+    - one idea is this: on hovering of mouse on the item Description it should be able be to open AI assistance so that some insights may be given  
 - Footer:
     -copyright - All Rights reserved - something like that. 
 
