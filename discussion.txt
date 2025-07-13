@@ -1,0 +1,13 @@
+UI design:
+- Header: 
+    -Display Time and Time Block at the right top of the page just beside Logout option.
+    - Top Heading - /APSLDC Control Room Log Book/ 
+- Menu on the left of the page - hideable sidebar/ hovering mouse pointer should be able to open/close it. 
+    - Entry Tripping
+    - Generation Outage Entry
+    - Bus Reactors Entry
+    - Reports for shift operations - downloadable pdf - need to discuss later
+- Footer:
+    -copyright - All Rights reserved - something like that. 
+
+Database Design:

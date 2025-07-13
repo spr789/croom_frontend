@@ -1,0 +1,10 @@
+git init
+git add .
+git commit -m "modular design"
+git status
+git log
+git branch new-branch
+git checkout new-branch
+git merge master
+git push origin master
+git pull origin master

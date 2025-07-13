@@ -2,7 +2,6 @@
 
 import useAuth from "@/lib/hooks/useAuth";
 import DashboardCard from "@/lib/components/dashboard/DashboardCard";
-import Header from "@/lib/components/layout/Header";
 
 
 export default function DashboardPage() {
@@ -21,8 +20,6 @@ export default function DashboardPage() {
   }
 
   return (
-    <div>
-      <Header />
 
       <div className="p-6">
         <h1 className="text-3xl font-bold mb-4">CROOM Dashboard</h1>
@@ -54,7 +51,6 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-    </div>
 
   );
 }
