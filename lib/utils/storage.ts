@@ -6,6 +6,12 @@ export const getRefreshToken = (): string | null => localStorage.getItem("refres
 export const setRefreshToken = (refreshToken: string): void => localStorage.setItem("refreshToken", refreshToken);
 export const removeRefreshToken = (): void => localStorage.removeItem("refreshToken");
 
+// lib/utils/storage.ts
+export const getEmployeeName = (): string | null => {
+  return localStorage.getItem("employeeName"); // or "employee" depending on your key
+};
+
+
 export const clearTokens = (): void => {
   removeToken();
   removeRefreshToken();

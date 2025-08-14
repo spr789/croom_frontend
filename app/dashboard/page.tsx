@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
 import WeatherBanner from '@/components/WeatherBanner';
 import DashboardOverview from '@/components/DashboardOverview';
-import TrippingsView from '@/components/TrippingsView';
+import TrippingsView from '@/components/trippings/TrippingsView';
 import OutagesView from '@/components/OutagesView';
 import LineClearsView from '@/components/LineClearsView';
 import VoltageRegulationView from '@/components/VoltageRegulationView';
