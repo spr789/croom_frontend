@@ -1,9 +1,12 @@
 export interface Tripping {
   id: string;
-  element_type: string;
-  from_ss: string;
-  to_ss?: string | null;
-  number: number;
+  connection_info: {
+    element_type: string;
+    voltage_level: string;
+    from_ss: string;
+    to_ss?: string | null;
+    number: number;
+  };
   tripping_datetime: string;
   restoration_datetime?: string;
   reason?: { id: string; name: string };

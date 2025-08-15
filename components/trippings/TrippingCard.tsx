@@ -8,10 +8,6 @@ import type { Tripping } from "@/lib/types/tripping";
 import { getStatusColor, getStatusIcon } from "./trippingHelpers";
 import { getEmployeeName } from "@/lib/utils/storage";
 
-
-<span>{getEmployeeName() || "-"}</span>
- 
-
 interface Props {
   tripping: Tripping;
   onMarkCleared?: () => void;
@@ -19,24 +15,43 @@ interface Props {
   actions?: ReactNode;
 }
 
+// Optional helper to flatten nested connection_info
+const formatTrippingLabel = (tripping: Tripping) => {
+  const elementType = (tripping as any).connection_info?.element_type ?? tripping.element_type;
+  const voltageLevel = (tripping as any).connection_info?.voltage_level ?? tripping.voltage_level;
+  const fromSS = (tripping as any).connection_info?.from_substation ?? tripping.from_ss;
+  const toSS = (tripping as any).connection_info?.to_substation ?? tripping.to_ss;
+  const number = (tripping as any).connection_info?.number ?? tripping.number;
+
+  return `${elementType}: ${voltageLevel} ${fromSS}${toSS ? ` → ${toSS}` : ""} - ${number ?? "-"}`;
+};
+
 export default function TrippingCard({ tripping, onMarkCleared, onMarkInvestigating, actions }: Props) {
+  // Debug: inspect tripping object
+  console.log("Tripping object:", tripping);
+
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
           <div>
-          <div className="flex items-center space-x-2 mb-1">
-  {getStatusIcon(tripping.restoration_datetime ? "cleared" : "active")}
-  <Badge
-    className={getStatusColor(tripping.restoration_datetime ? "cleared" : "active")}
-    variant="outline"
-  >
-    {(tripping.restoration_datetime ? "cleared" : "active").toUpperCase()}
-  </Badge>
-  <span className="font-medium">{tripping.element_type}</span>
-</div>
+            <div className="flex items-center space-x-2 mb-1">
+              {getStatusIcon(tripping.restoration_datetime ? "cleared" : "active")}
+              <Badge
+                className={getStatusColor(tripping.restoration_datetime ? "cleared" : "active")}
+                variant="outline"
+              >
+                {(tripping.restoration_datetime ? "cleared" : "active").toUpperCase()}
+              </Badge>
 
-            <p className="text-sm text-gray-600 dark:text-gray-400">Reason: {tripping.reason?.name || "-"}</p>
+              <span className="font-medium">
+                {formatTrippingLabel(tripping)}
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Reason: {tripping.reason?.name || "-"}
+            </p>
           </div>
         </div>
         <div className="flex items-center space-x-2">{actions}</div>

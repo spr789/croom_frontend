@@ -1,36 +1,61 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/Header';
-import WeatherBanner from '@/components/WeatherBanner';
-import DashboardOverview from '@/components/DashboardOverview';
-import TrippingsView from '@/components/trippings/TrippingsView';
-import OutagesView from '@/components/OutagesView';
-import LineClearsView from '@/components/LineClearsView';
-import VoltageRegulationView from '@/components/VoltageRegulationView';
-import Sidebar from '@/components/Sidebar';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import Header from "@/components/Header";
+import WeatherBanner from "@/components/WeatherBanner";
+import DashboardOverview from "@/components/DashboardOverview";
+import TrippingsView from "@/components/trippings/TrippingsView";
+import OutagesView from "@/components/OutagesView";
+import LineClearsView from "@/components/LineClearsView";
+import VoltageRegulationView from "@/components/VoltageRegulationView";
+import Sidebar from "@/components/Sidebar";
+import { useMasterDataStore } from "@/lib/store/masterDataStore";
 
-type DashboardView = 'overview' | 'trippings' | 'outages' | 'line-clears' | 'voltage-regulation';
+type DashboardView =
+  | "overview"
+  | "trippings"
+  | "outages"
+  | "line-clears"
+  | "voltage-regulation";
 
 export default function Dashboard() {
+  const {
+    fetchMasterData,
+    fetchSSConnections,
+    ssConnections,
+  } = useMasterDataStore();
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [currentView, setCurrentView] = useState<DashboardView>('overview');
+  const [currentView, setCurrentView] =
+    useState<DashboardView>("overview");
 
+  // ✅ Fetch master data & SS connections after login
   useEffect(() => {
-    if (isLoading) return; // Wait for auth to finish checking
-    if (!user) router.push('/');
+    if (!isLoading && user) {
+      console.log("✅ Logged in, fetching master data...");
+      fetchMasterData();
+      fetchSSConnections(); // Force call so it doesn't rely on lazy loading
+    }
+  }, [isLoading, user, fetchMasterData, fetchSSConnections]);
+
+  // ✅ Redirect if not logged in
+  useEffect(() => {
+    if (isLoading) return;
+    if (!user) {
+      router.push("/");
+    }
   }, [user, isLoading, router]);
-  
 
   if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600">
+            Loading dashboard...
+          </p>
         </div>
       </div>
     );
@@ -38,13 +63,13 @@ export default function Dashboard() {
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'trippings':
+      case "trippings":
         return <TrippingsView />;
-      case 'outages':
+      case "outages":
         return <OutagesView />;
-      case 'line-clears':
+      case "line-clears":
         return <LineClearsView />;
-      case 'voltage-regulation':
+      case "voltage-regulation":
         return <VoltageRegulationView />;
       default:
         return <DashboardOverview />;
@@ -56,15 +81,16 @@ export default function Dashboard() {
       <Header />
       <div className="container mx-auto px-4 py-6">
         <WeatherBanner />
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-1 space-y-6">
-            <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+            <Sidebar
+              currentView={currentView}
+              onViewChange={setCurrentView}
+            />
           </div>
-          
-          <div className="lg:col-span-4">
-            {renderCurrentView()}
-          </div>
+
+          <div className="lg:col-span-4">{renderCurrentView()}</div>
         </div>
       </div>
     </div>

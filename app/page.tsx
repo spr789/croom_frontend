@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import LoginPage from "@/components/LoginPage";
 
+
+
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
