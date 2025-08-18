@@ -1,42 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useMasterDataStore } from "@/lib/store/masterDataStore";
 import type { Tripping } from "@/lib/types/tripping";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  onSubmit: (data: Omit<Tripping, "id">) => void;
-  triggerLabel?: string;
-}
+import Dropdown from "./Dropdown";
+import { filterSubstations, filterSSConnections } from "./filters";
 
-export default function NewTrippingDialog({ open, onOpenChange, onSubmit, triggerLabel = "New" }: Props) {
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  triggerLabel?: string;
+};
+
+export default function NewTrippingDialog({
+  open,
+  onOpenChange,
+  triggerLabel = "New Tripping",
+}: Props) {
+  const { masterData, ssConnections, loading } = useMasterDataStore();
+
+  // local state
+  const [circle, setCircle] = useState("");
+  const [voltage, setVoltage] = useState("");
   const [substation, setSubstation] = useState("");
-  const [feeder, setFeeder] = useState("");
+  const [elementType, setElementType] = useState("");
+  const [ssConnection, setSsConnection] = useState("");
   const [reason, setReason] = useState("");
   const [severity, setSeverity] = useState<Tripping["severity"] | "">("");
   const [description, setDescription] = useState("");
 
-  const handleCreate = () => {
-    if (!substation || !feeder || !reason || !severity) return;
+  // ---- Filtering ----
+  const filteredSubstations = filterSubstations(
+    masterData?.substations ?? [],
+    circle,
+    voltage
+  );
 
-    onSubmit({
-      timestamp: new Date().toISOString(),
-      substation,
-      feeder,
+  const filteredSSConnections = filterSSConnections(
+    ssConnections?.ss_connections ?? [],
+    substation,
+    elementType
+  );
+
+  // ---- Submit ----
+  const handleCreate = () => {
+    const payload: Partial<Tripping> = {
+      circle: Number(circle),
+      voltage_level: Number(voltage),
+      substation: Number(substation),
+      element_type: Number(elementType),
+      ss_connection: Number(ssConnection),
       reason,
-      employee: "EMP001", // could be taken from auth context
-      status: "active",
       severity: severity as Tripping["severity"],
       description,
-    });
+    };
+
+    console.log("Submitting tripping:", payload);
+    // TODO: API call
+    onOpenChange(false);
   };
 
   return (
@@ -47,76 +79,102 @@ export default function NewTrippingDialog({ open, onOpenChange, onSubmit, trigge
           {triggerLabel}
         </Button>
       </DialogTrigger>
+
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Log New Tripping</DialogTitle>
         </DialogHeader>
+
+        {loading && <p className="text-sm text-gray-500">Loading...</p>}
+
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="substation">Substation</Label>
-            <Select onValueChange={setSubstation}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select substation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SS-MAIN-01">SS-MAIN-01</SelectItem>
-                <SelectItem value="SS-SUB-02">SS-SUB-02</SelectItem>
-                <SelectItem value="SS-DIST-03">SS-DIST-03</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Dropdown
+            label="Circle"
+            options={masterData?.circles ?? []}
+            value={circle}
+            onChange={setCircle}
+            placeholder="Select circle"
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="feeder">Feeder/Equipment</Label>
-            <Input id="feeder" placeholder="e.g., 132KV Feeder F-1" value={feeder} onChange={(e) => setFeeder(e.target.value)} />
-          </div>
+          <Dropdown
+            label="Voltage Level"
+            options={masterData?.voltage_levels ?? []}
+            value={voltage}
+            onChange={setVoltage}
+            placeholder="Select voltage level"
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="reason">Reason</Label>
-            <Select onValueChange={setReason}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Earth Fault">Earth Fault</SelectItem>
-                <SelectItem value="Over Current">Over Current</SelectItem>
-                <SelectItem value="Lightning">Lightning</SelectItem>
-                <SelectItem value="Equipment Failure">Equipment Failure</SelectItem>
-                <SelectItem value="Human Error">Human Error</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Dropdown
+            label="Substation"
+            options={filteredSubstations ?? []}
+            value={substation}
+            onChange={setSubstation}
+            placeholder="Select substation"
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="severity">Severity</Label>
-            <Select onValueChange={(v) => setSeverity(v as Tripping["severity"])}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select severity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Dropdown
+            label="Element Type"
+            options={masterData?.element_types ?? []}
+            value={elementType}
+            onChange={setElementType}
+            placeholder="Select element type"
+          />
 
+          <Dropdown
+            label="SS Connection"
+            options={filteredSSConnections ?? []}
+            value={ssConnection}
+            onChange={setSsConnection}
+            placeholder="Select SS connection"
+          />
+
+          <Dropdown
+            label="Reason"
+            options={[
+              { value: "Earth Fault", label: "Earth Fault" },
+              { value: "Over Current", label: "Over Current" },
+              { value: "Lightning", label: "Lightning" },
+              { value: "Equipment Failure", label: "Equipment Failure" },
+              { value: "Human Error", label: "Human Error" },
+            ]}
+            value={reason}
+            onChange={setReason}
+            placeholder="Select reason"
+          />
+
+          <Dropdown
+            label="Severity"
+            options={[
+              { value: "high", label: "High" },
+              { value: "medium", label: "Medium" },
+              { value: "low", label: "Low" },
+            ]}
+            value={severity}
+            onChange={setSeverity}
+            placeholder="Select severity"
+          />
+
+          {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <label>Description</label>
             <Textarea
-              id="description"
-              placeholder="Detailed description of the tripping..."
+              placeholder="Detailed description..."
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
+          {/* Actions */}
           <div className="flex space-x-2">
             <Button className="flex-1" onClick={handleCreate}>
               Log Tripping
             </Button>
-            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
           </div>

@@ -57,11 +57,25 @@ export const useMasterDataStore = create<MasterDataStore>((set) => ({
     try {
       const { data } = await api.get<SSConnectionsData>(ENDPOINTS.SS_CONNECTIONS);
   
-      // Map ss_connections for dropdowns
-      const mappedConnections = (data.ss_connections || []).map((item: any) => ({
-        label: `${item.from_ss?.name} → ${item.to_ss?.name} (${item.voltage_level?.name}) [${item.number}]`,
-        value: item.id,
-      }));
+      const mappedConnections = (data.ss_connections || []).map((item: any) => {
+        const isFeeder = item.element_type?.element_type === "Feeder";
+  
+        let label = "";
+        if (isFeeder) {
+          label = `${item.from_ss?.name || "?"} → ${item.to_ss?.name || "-"} (${item.voltage_level?.voltage_level || "?"}) [${item.number ?? "-"}]`;
+        } else {
+          label = `${item.from_ss?.name || "?"} ${item.element_type?.element_type || ""} (${item.voltage_level?.voltage_level || "?"}) [${item.number ?? "-"}]`;
+        }
+  
+        return {
+          label,
+          value: item.id,
+          from_ss: item.from_ss?.id,
+          to_ss: item.to_ss?.id,
+          voltage_level: item.voltage_level?.id,
+          element_type: item.element_type?.id,
+        };
+      });
   
       console.log("🔍 Raw SS Connections:", data);
       console.log("✅ Mapped SS Connections:", mappedConnections);
@@ -71,5 +85,6 @@ export const useMasterDataStore = create<MasterDataStore>((set) => ({
       set({ error: "Failed to fetch SS connections", loading: false });
     }
   },
+  
   
 }));

@@ -17,6 +17,7 @@ export const fetchTrippings = async (params?: FetchTrippingsParams): Promise<Tri
     return data;
   } catch (error: any) {
     console.error('[TrippingService] Failed to fetch trippings:', error);
+    
     throw error;
   }
 };
