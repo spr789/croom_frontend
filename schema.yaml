@@ -1,0 +1,900 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "CROOM API",
+    "description": "API documentation for Control Room Logbook & Trippings",
+    "contact": {
+      "email": "youremail@company.com"
+    },
+    "version": "v1"
+  },
+  "host": "localhost:8000",
+  "schemes": [
+    "http"
+  ],
+  "basePath": "/api",
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Bearer \u003Ctoken\u003E\""
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "paths": {
+    "/accounts/register/": {
+      "post": {
+        "operationId": "accounts_register_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EmployeeCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/EmployeeCreate"
+            }
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": []
+    },
+    "/accounts/token/": {
+      "post": {
+        "operationId": "accounts_token_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EmployeeTokenObtainPair"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/EmployeeTokenObtainPair"
+            }
+          }
+        },
+        "tags": [
+          "accounts"
+        ]
+      },
+      "parameters": []
+    },
+    "/master/master-data/": {
+      "get": {
+        "operationId": "master_master-data_list",
+        "description": "Retrieve all master data (excluding SS connections).",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Master data response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "utilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "voltage_levels": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "circles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "element_types": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "substations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "plants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "mva_capacities": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "conductor_types": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "gen_out_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "grid_element_reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "master"
+        ]
+      },
+      "parameters": []
+    },
+    "/master/ss-connections/": {
+      "get": {
+        "operationId": "master_ss-connections_list",
+        "description": "Retrieve all SS connection records (lazy-loaded).",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "SS connection list",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "ss_connections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "master"
+        ]
+      },
+      "parameters": []
+    },
+    "/reservoirreservoirs/": {
+      "get": {
+        "operationId": "reservoirreservoirs_list",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReservoirDetail"
+              }
+            }
+          }
+        },
+        "tags": [
+          "reservoirreservoirs"
+        ]
+      },
+      "post": {
+        "operationId": "reservoirreservoirs_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        },
+        "tags": [
+          "reservoirreservoirs"
+        ]
+      },
+      "parameters": []
+    },
+    "/reservoirreservoirs/{id}/": {
+      "get": {
+        "operationId": "reservoirreservoirs_read",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        },
+        "tags": [
+          "reservoirreservoirs"
+        ]
+      },
+      "put": {
+        "operationId": "reservoirreservoirs_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        },
+        "tags": [
+          "reservoirreservoirs"
+        ]
+      },
+      "patch": {
+        "operationId": "reservoirreservoirs_partial_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/ReservoirDetail"
+            }
+          }
+        },
+        "tags": [
+          "reservoirreservoirs"
+        ]
+      },
+      "delete": {
+        "operationId": "reservoirreservoirs_delete",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "reservoirreservoirs"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Reservoir Detail.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/trippings/element/": {
+      "get": {
+        "operationId": "trippings_element_list",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Tripping"
+              }
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "post": {
+        "operationId": "trippings_element_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "parameters": []
+    },
+    "/trippings/element/{id}/": {
+      "get": {
+        "operationId": "trippings_element_read",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "put": {
+        "operationId": "trippings_element_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "patch": {
+        "operationId": "trippings_element_partial_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Tripping"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "delete": {
+        "operationId": "trippings_element_delete",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this tripping.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/trippings/gen-outages/": {
+      "get": {
+        "operationId": "trippings_gen-outages_list",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GenOutage"
+              }
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "post": {
+        "operationId": "trippings_gen-outages_create",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "parameters": []
+    },
+    "/trippings/gen-outages/{id}/": {
+      "get": {
+        "operationId": "trippings_gen-outages_read",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "put": {
+        "operationId": "trippings_gen-outages_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "patch": {
+        "operationId": "trippings_gen-outages_partial_update",
+        "description": "",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/GenOutage"
+            }
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "delete": {
+        "operationId": "trippings_gen-outages_delete",
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "trippings"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this gen outage.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "EmployeeCreate": {
+      "required": [
+        "employee_id",
+        "name",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "employee_id": {
+          "title": "Employee id",
+          "type": "string",
+          "maxLength": 20,
+          "minLength": 1
+        },
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "designation": {
+          "title": "Designation",
+          "type": "string",
+          "maxLength": 100,
+          "x-nullable": true
+        },
+        "mobile_number": {
+          "title": "Mobile number",
+          "type": "string",
+          "maxLength": 15,
+          "x-nullable": true
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "EmployeeTokenObtainPair": {
+      "required": [
+        "employee_id",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "employee_id": {
+          "title": "Employee id",
+          "type": "string",
+          "minLength": 1
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ReservoirDetail": {
+      "required": [
+        "name",
+        "current_level",
+        "inflow",
+        "outflow",
+        "frl",
+        "capacity",
+        "observation_time"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "current_level": {
+          "title": "Current level",
+          "description": "Current water level (in meters)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "inflow": {
+          "title": "Inflow",
+          "description": "Inflow (in cusecs)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "outflow": {
+          "title": "Outflow",
+          "description": "Outflow (in cusecs)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "frl": {
+          "title": "Frl",
+          "description": "Full Reservoir Level (in meters)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "capacity": {
+          "title": "Capacity",
+          "description": "Total capacity (in TMC or MCM)",
+          "type": "string",
+          "format": "decimal"
+        },
+        "observation_time": {
+          "title": "Observation time",
+          "description": "Datetime of observation",
+          "type": "string",
+          "format": "date-time"
+        },
+        "remarks": {
+          "title": "Remarks",
+          "type": "string",
+          "x-nullable": true
+        },
+        "created_at": {
+          "title": "Created at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "updated_at": {
+          "title": "Updated at",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "connected_substation": {
+          "title": "Connected substation",
+          "description": "Substation connected to the reservoir",
+          "type": "integer",
+          "x-nullable": true
+        }
+      }
+    },
+    "Tripping": {
+      "required": [
+        "tripping_datetime"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "connection_info": {
+          "title": "Connection info",
+          "type": "string",
+          "readOnly": true
+        },
+        "voltage_level": {
+          "title": "Voltage level",
+          "type": "string",
+          "readOnly": true
+        },
+        "element_type": {
+          "title": "Element type",
+          "type": "string",
+          "readOnly": true
+        },
+        "from_ss": {
+          "title": "From ss",
+          "type": "string",
+          "readOnly": true
+        },
+        "to_ss": {
+          "title": "To ss",
+          "type": "string",
+          "readOnly": true
+        },
+        "tripping_datetime": {
+          "title": "Tripping datetime",
+          "description": "Date & time of tripping",
+          "type": "string",
+          "format": "date-time"
+        },
+        "restoration_datetime": {
+          "title": "Restoration datetime",
+          "description": "Date & time of restoration",
+          "type": "string",
+          "format": "date-time",
+          "x-nullable": true
+        },
+        "srldc_code": {
+          "title": "Srldc code",
+          "description": "SRLDC reference code (if any)",
+          "type": "string",
+          "maxLength": 50,
+          "x-nullable": true
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "integer",
+          "x-nullable": true
+        },
+        "from_indication": {
+          "title": "From indication",
+          "description": "Indications from FROM end",
+          "type": "string",
+          "x-nullable": true
+        },
+        "to_indication": {
+          "title": "To indication",
+          "description": "Indications from TO end",
+          "type": "string",
+          "x-nullable": true
+        },
+        "remarks": {
+          "title": "Remarks",
+          "description": "Any additional remarks",
+          "type": "string",
+          "x-nullable": true
+        }
+      }
+    },
+    "GenOutage": {
+      "required": [
+        "plant",
+        "trip_time"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "plant": {
+          "title": "Plant",
+          "type": "integer"
+        },
+        "outage_type": {
+          "title": "Outage type",
+          "type": "string",
+          "enum": [
+            "Planned",
+            "Forced"
+          ]
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "integer",
+          "x-nullable": true
+        },
+        "trip_time": {
+          "title": "Trip time",
+          "type": "string",
+          "format": "date-time"
+        },
+        "sync_time": {
+          "title": "Sync time",
+          "type": "string",
+          "format": "date-time",
+          "x-nullable": true
+        },
+        "expected_sync_time": {
+          "title": "Expected sync time",
+          "type": "string",
+          "format": "date-time",
+          "x-nullable": true
+        },
+        "remarks": {
+          "title": "Remarks",
+          "type": "string",
+          "x-nullable": true
+        },
+        "duration": {
+          "title": "Duration",
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    }
+  }
+}

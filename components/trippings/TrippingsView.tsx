@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Edit, Zap } from "lucide-react";
 
 import { useTrippings } from "@/lib/hooks/useTrippings";
-import type { Tripping } from "@/lib/types/tripping";
+import type { Tripping, TrippingCreate } from "@/lib/types/tripping";
 import TrippingFilters from "@/components/trippings/TrippingFilters";
 import TrippingCard from "@/components/trippings/TrippingCard";
 import NewTrippingDialog from "@/components/trippings/NewTrippingDialog";
@@ -30,9 +30,9 @@ export default function TrippingsView() {
   const filteredTrippings = useMemo(() => {
     return trippings.filter((t) => {
       const matchesSearch =
-        t.element_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.from_ss.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (t.to_ss?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+        t.element_type_display.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.from_ss_display.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (t.to_ss_display?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
   
       const matchesStatus = selectedStatus === "all" || t.status === selectedStatus;
   
@@ -44,17 +44,20 @@ export default function TrippingsView() {
   
 
   // Callbacks
-  const handleCreate = async (data: Omit<Tripping, "id">) => {
+  const handleCreate = async (data: TrippingCreate) => {
     try {
-      const created = await createTripping(data);
+      const created: Tripping = await createTripping(data);
       setTrippings((prev) => [created, ...prev]);
       setIsNewTrippingOpen(false);
     } catch (err) {
       console.error(err);
     }
   };
+  
+  
+  
 
-  const markCleared = (id: string) => {
+  const markCleared = (id: number) => {
     setTrippings((prev) =>
       prev.map((t) =>
         t.id === id
@@ -73,10 +76,7 @@ export default function TrippingsView() {
     );
   };
   
-
-  const markInvestigating = (id: string) => {
-    setTrippings((prev) => prev.map((t) => (t.id === id ? { ...t, status: "investigating" } : t)));
-  };
+  
 
   return (
     <div className="space-y-6">
@@ -93,7 +93,7 @@ export default function TrippingsView() {
         <NewTrippingDialog
           open={isNewTrippingOpen}
           onOpenChange={setIsNewTrippingOpen}
-          onSubmit={handleCreate}
+          onSubmit={handleCreate}  // <-- TS error
           triggerLabel="New Tripping"
         />
       </div>
@@ -131,7 +131,6 @@ export default function TrippingsView() {
                 key={t.id}
                 tripping={t}
                 onMarkCleared={() => markCleared(t.id)}
-                onMarkInvestigating={() => markInvestigating(t.id)}
                 actions={
                   <div className="flex items-center space-x-2">
                     <Button size="sm" variant="outline">

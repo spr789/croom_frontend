@@ -12,10 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMasterDataStore } from "@/lib/store/masterDataStore";
-import type { Tripping } from "@/lib/types/tripping";
-
+import type { TrippingCreate } from "@/lib/services/tripping";
 import Dropdown from "./Dropdown";
 import { filterSubstations, filterSSConnections } from "./filters";
+import { createTripping } from "@/lib/services/tripping";
+import { toast } from "sonner";
 
 type Props = {
   open: boolean;
@@ -30,17 +31,23 @@ export default function NewTrippingDialog({
 }: Props) {
   const { masterData, ssConnections, loading } = useMasterDataStore();
 
-  // local state
+  // Form states
   const [circle, setCircle] = useState("");
   const [voltage, setVoltage] = useState("");
-  const [substation, setSubstation] = useState("");
+  const [fromSS, setFromSS] = useState("");
+  const [toSS, setToSS] = useState("");
   const [elementType, setElementType] = useState("");
   const [ssConnection, setSsConnection] = useState("");
-  const [reason, setReason] = useState("");
-  const [severity, setSeverity] = useState<Tripping["severity"] | "">("");
-  const [description, setDescription] = useState("");
 
-  // ---- Filtering ----
+  const [reason, setReason] = useState("");
+  const [severity, setSeverity] = useState<TrippingCreate["severity"] | "">("");
+  const [description, setDescription] = useState("");
+  const [trippingDatetime, setTrippingDatetime] = useState<string>("");
+  const [number, setNumber] = useState("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Filtered dropdown options
   const filteredSubstations = filterSubstations(
     masterData?.substations ?? [],
     circle,
@@ -48,27 +55,54 @@ export default function NewTrippingDialog({
   );
 
   const filteredSSConnections = filterSSConnections(
-    ssConnections?.ss_connections ?? [],
-    substation,
+    ssConnections ?? [],
+    fromSS,
     elementType
   );
 
-  // ---- Submit ----
-  const handleCreate = () => {
-    const payload: Partial<Tripping> = {
-      circle: Number(circle),
+  const isFormValid =
+    circle &&
+    voltage &&
+    fromSS &&
+    elementType &&
+    severity &&
+    reason;
+
+  const handleCreate = async () => {
+    if (!isFormValid) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
+    const payload: TrippingCreate = {
       voltage_level: Number(voltage),
-      substation: Number(substation),
       element_type: Number(elementType),
-      ss_connection: Number(ssConnection),
-      reason,
-      severity: severity as Tripping["severity"],
-      description,
+      from_ss: Number(fromSS),
+      to_ss: toSS ? Number(toSS) : null,
+      number: Number(number),  // <-- use actual value from user
+      tripping_datetime: trippingDatetime
+        ? new Date(trippingDatetime).toISOString()
+        : new Date().toISOString(),
+      restoration_datetime: null, // <-- send null instead of empty string
+      srldc_code: "",
+      reason: Number(reason),
+      from_indication: "",
+      to_indication: "",
+      remarks: description,
     };
 
-    console.log("Submitting tripping:", payload);
-    // TODO: API call
-    onOpenChange(false);
+    try {
+      setIsSubmitting(true);
+      const created = await createTripping(payload);
+      toast.success("Tripping logged successfully!");
+      console.log("Created tripping:", created);
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Failed to create tripping:", error);
+      toast.error(error.response?.data?.message || "Failed to log tripping");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -90,7 +124,10 @@ export default function NewTrippingDialog({
         <div className="space-y-4">
           <Dropdown
             label="Circle"
-            options={masterData?.circles ?? []}
+            options={(masterData?.circles ?? []).map((c) => ({
+              value: c.id,
+              label: c.name,
+            }))}
             value={circle}
             onChange={setCircle}
             placeholder="Select circle"
@@ -98,27 +135,59 @@ export default function NewTrippingDialog({
 
           <Dropdown
             label="Voltage Level"
-            options={masterData?.voltage_levels ?? []}
+            options={(masterData?.voltage_levels ?? []).map((vl) => ({
+              value: vl.id,
+              label: vl.voltage_level,
+            }))}
             value={voltage}
             onChange={setVoltage}
             placeholder="Select voltage level"
           />
 
           <Dropdown
-            label="Substation"
-            options={filteredSubstations ?? []}
-            value={substation}
-            onChange={setSubstation}
-            placeholder="Select substation"
+            label="From Substation"
+            options={(filteredSubstations ?? []).map((ss) => ({
+              value: ss.id,
+              label: ss.name,
+            }))}
+            value={fromSS}
+            onChange={setFromSS}
+            placeholder="Select originating substation"
+          />
+
+          <Dropdown
+            label="To Substation"
+            options={(filteredSubstations ?? []).map((ss) => ({
+              value: ss.id,
+              label: ss.name,
+            }))}
+            value={toSS}
+            onChange={setToSS}
+            placeholder="Select terminating substation (optional)"
           />
 
           <Dropdown
             label="Element Type"
-            options={masterData?.element_types ?? []}
+            options={(masterData?.element_types ?? []).map((et) => ({
+              value: et.id,
+              label: et.element_type,
+            }))}
             value={elementType}
             onChange={setElementType}
             placeholder="Select element type"
           />
+
+<Dropdown
+  label="Number"
+  options={filteredSSConnections?.map((c) => ({
+    value: c.number,
+    label: String(c.number),
+  })) ?? []}
+  value={number}
+  onChange={setNumber}
+  placeholder="Select number"
+/>
+
 
           <Dropdown
             label="SS Connection"
@@ -130,13 +199,10 @@ export default function NewTrippingDialog({
 
           <Dropdown
             label="Reason"
-            options={[
-              { value: "Earth Fault", label: "Earth Fault" },
-              { value: "Over Current", label: "Over Current" },
-              { value: "Lightning", label: "Lightning" },
-              { value: "Equipment Failure", label: "Equipment Failure" },
-              { value: "Human Error", label: "Human Error" },
-            ]}
+            options={(masterData?.grid_element_reasons ?? []).map((r) => ({
+              value: r.id,
+              label: r.name,
+            }))}
             value={reason}
             onChange={setReason}
             placeholder="Select reason"
@@ -150,13 +216,24 @@ export default function NewTrippingDialog({
               { value: "low", label: "Low" },
             ]}
             value={severity}
-            onChange={setSeverity}
+            onChange={(val) =>
+              setSeverity(val as "low" | "medium" | "high" | "")
+            }
             placeholder="Select severity"
           />
 
-          {/* Description */}
           <div className="space-y-2">
-            <label>Description</label>
+            <label>Tripping Date & Time</label>
+            <input
+              type="datetime-local"
+              className="w-full border rounded px-3 py-2"
+              value={trippingDatetime}
+              onChange={(e) => setTrippingDatetime(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label>Description / Remarks</label>
             <Textarea
               placeholder="Detailed description..."
               rows={3}
@@ -165,10 +242,13 @@ export default function NewTrippingDialog({
             />
           </div>
 
-          {/* Actions */}
           <div className="flex space-x-2">
-            <Button className="flex-1" onClick={handleCreate}>
-              Log Tripping
+            <Button
+              className="flex-1"
+              onClick={handleCreate}
+              disabled={!isFormValid || isSubmitting}
+            >
+              {isSubmitting ? "Logging..." : "Log Tripping"}
             </Button>
             <Button
               variant="outline"

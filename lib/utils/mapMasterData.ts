@@ -1,68 +1,71 @@
 // src/lib/utils/mapMasterData.ts
+import { MasterData, SSConnection, Substation } from "@/lib/types/masterData";
+import { Option, SubstationOption, SSConnectionOption, MappedMasterData } from "@/lib/types/ui"; // ✅ import from ui.ts
 
-const mapToOptions = (
-  list: any[] = [],
-  labelKey: string = "name",
-  valueKey: string = "id"
-) => {
-  return list.map(item => ({
-    label: item[labelKey],
-    value: item[valueKey],
-  }));
-};
+
 
 /**
- * Map master data response into frontend-friendly dropdown options
+ * Generic function to convert an array of objects into dropdown options
  */
-export const mapMasterData = (data: any) => {
+const mapToOptions = <T extends Record<string, any>>(
+  list: T[] = [],
+  labelKey: keyof T = "name",
+  valueKey: keyof T = "id"
+): Option[] => {
+  return list
+    .filter(item => item && item[valueKey] !== undefined)
+    .map(item => ({
+      label: String(item[labelKey]) || "Unknown",
+      value: Number(item[valueKey]), // ✅ convert to number
+    }));
+};
+
+
+/**
+ * Maps MasterData API response into dropdown-friendly format
+ */
+export const mapMasterData = (data: MasterData | null): MappedMasterData | null => {
   if (!data) return null;
 
   return {
-    ...data,
-
-    utilities: mapToOptions(data.utilities),
+    utilities: mapToOptions(data.utilities), // mapToOptions should return {label, value:number}
     voltage_levels: mapToOptions(data.voltage_levels, "voltage_level", "id"),
     circles: mapToOptions(data.circles),
     element_types: mapToOptions(data.element_types, "element_type", "id"),
-
-    substations: (data.substations || []).map((s: any) => ({
-      label: s.name,
-      value: s.id,
-      circle: s.circle,
-      voltage_level: s.voltage_level,
-    })),
-
     plants: mapToOptions(data.plants),
     mva_capacities: mapToOptions(data.mva_capacities, "capacity"),
     conductor_types: mapToOptions(data.conductor_types),
     gen_out_reasons: mapToOptions(data.gen_out_reasons),
     grid_element_reasons: mapToOptions(data.grid_element_reasons),
 
-    // ✅ SS Connections mapping (using nested objects directly)
-    // inside mapMasterData
+    // Substations
+    substations: (data.substations || []).map((s: Substation): SubstationOption => ({
+      label: s.name,
+      value: s.id,                   // ✅ number
+      circle: s.circle,
+      voltage_level: String(s.voltage_level), // ✅ convert to string if UI expects string
+    })),
 
-ss_connections: (data.ss_connections || []).map((item: any) => {
-  const isFeeder = item.element_type?.element_type === "Feeder";
-
-  let label = "";
-  if (isFeeder) {
-    label = `${item.from_ss?.name || "?"} → ${item.to_ss?.name || "-"} (${item.voltage_level?.voltage_level || "?"}) [${item.number ?? "-"}]`;
-  } else {
-    label = `${item.from_ss?.name || "?"} ${item.element_type?.element_type || ""} (${item.voltage_level?.voltage_level || "?"}) [${item.number ?? "-"}]`;
-  }
-
-  const mapped = {
-    label,
-    value: item.id,
-    from_ss: item.from_ss?.id,
-    to_ss: item.to_ss?.id,
-    voltage_level: item.voltage_level?.id,
-    element_type: item.element_type?.id,
-  };
-
-  console.log("🟢 Mapped SS Connection 123:", mapped);
-  return mapped;
-}),
-
+    // SS Connections
+    ss_connections: (data.ss_connections || []).map((item: SSConnection): SSConnectionOption => {
+      const isFeeder = item.element_type.element_type === "Feeder";
+    
+      const label = isFeeder
+        ? `${item.from_ss?.name || "?"} → ${item.to_ss?.name || "-"} (${item.voltage_level?.voltage_level || "?"}) [${item.number ?? "-"}]`
+        : `${item.from_ss?.name || "?"} ${item.element_type?.element_type || ""} (${item.voltage_level?.voltage_level || "?"}) [${item.number ?? "-"}]`;
+    
+      return {
+        id: item.id,                        // ✅ required
+        value: item.id,                     // keep value as number
+        label,
+        from_ss: item.from_ss?.id || null,
+        to_ss: item.to_ss?.id || null,
+        voltage_level: item.voltage_level?.id || null,
+        element_type: item.element_type?.id || null,
+        number: item.number || null,        // ✅ required
+      };
+    }),
+    
   };
 };
+
