@@ -6,16 +6,21 @@ import type { Tripping } from '../types/tripping';
 
 // ✅ Define a type specifically for creation payload
 export interface TrippingCreate {
-  circle: number;
-  voltage_level: number;
-  substation: number;
   element_type: number;
-  ss_connection?: number | null;
+  voltage_level: number;
+  from_ss: number;         // required
+  to_ss: number | null;    // optional
+  number: number;          // feeder/bus number
+  tripping_datetime: string;
+  restoration_datetime?: string | null;
+  srldc_code?: string;
   reason: number;
+  from_indication?: string;
+  to_indication?: string;
+  remarks?: string;
   severity: "low" | "medium" | "high";
-  description?: string;
-  tripping_datetime: string; // Added to ensure we have a datetime for the tripping
 }
+
 
 // ✅ Fetch existing trippings
 export const fetchTrippings = async (params?: Record<string, any>): Promise<Tripping[]> => {

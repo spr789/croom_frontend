@@ -35,19 +35,21 @@ export default function NewTrippingDialog({
   const [circle, setCircle] = useState("");
   const [voltage, setVoltage] = useState("");
   const [fromSS, setFromSS] = useState("");
-  const [toSS, setToSS] = useState("");
   const [elementType, setElementType] = useState("");
-  const [ssConnection, setSsConnection] = useState("");
+  const [selectedSSConnection, setSelectedSSConnection] = useState<
+    (typeof ssConnections)[0] | null
+  >(null);
 
   const [reason, setReason] = useState("");
-  const [severity, setSeverity] = useState<TrippingCreate["severity"] | "">("");
+  const [severity, setSeverity] = useState<TrippingCreate["severity"] | "">(
+    ""
+  );
   const [description, setDescription] = useState("");
   const [trippingDatetime, setTrippingDatetime] = useState<string>("");
-  const [number, setNumber] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Filtered dropdown options
+  // Filter dropdowns
   const filteredSubstations = filterSubstations(
     masterData?.substations ?? [],
     circle,
@@ -66,7 +68,8 @@ export default function NewTrippingDialog({
     fromSS &&
     elementType &&
     severity &&
-    reason;
+    reason &&
+    selectedSSConnection;
 
   const handleCreate = async () => {
     if (!isFormValid) {
@@ -75,21 +78,23 @@ export default function NewTrippingDialog({
     }
 
     const payload: TrippingCreate = {
-      voltage_level: Number(voltage),
       element_type: Number(elementType),
-      from_ss: Number(fromSS),
-      to_ss: toSS ? Number(toSS) : null,
-      number: Number(number),  // <-- use actual value from user
+      voltage_level: Number(voltage),
+      from_ss: selectedSSConnection?.from_ss ?? Number(fromSS), // use from SS from connection if selected
+      to_ss: selectedSSConnection?.to_ss ?? null,               // use to SS from connection if selected
+      number: selectedSSConnection?.number ?? 0,               // use number from connection if selected
       tripping_datetime: trippingDatetime
         ? new Date(trippingDatetime).toISOString()
         : new Date().toISOString(),
-      restoration_datetime: null, // <-- send null instead of empty string
+      restoration_datetime: null, // send null instead of empty string
       srldc_code: "",
       reason: Number(reason),
       from_indication: "",
       to_indication: "",
       remarks: description,
     };
+    
+    
 
     try {
       setIsSubmitting(true);
@@ -156,17 +161,6 @@ export default function NewTrippingDialog({
           />
 
           <Dropdown
-            label="To Substation"
-            options={(filteredSubstations ?? []).map((ss) => ({
-              value: ss.id,
-              label: ss.name,
-            }))}
-            value={toSS}
-            onChange={setToSS}
-            placeholder="Select terminating substation (optional)"
-          />
-
-          <Dropdown
             label="Element Type"
             options={(masterData?.element_types ?? []).map((et) => ({
               value: et.id,
@@ -178,24 +172,19 @@ export default function NewTrippingDialog({
           />
 
 <Dropdown
-  label="Number"
+  label="SS Connection"
   options={filteredSSConnections?.map((c) => ({
-    value: c.number,
-    label: String(c.number),
+    value: c.value,   // <-- use 'value' here
+    label: c.label,
+    data: c,          // store full object for later
   })) ?? []}
-  value={number}
-  onChange={setNumber}
-  placeholder="Select number"
+  value={selectedSSConnection?.value ?? ""}  // <-- match the option value
+  onChange={(val) => {
+    const conn = filteredSSConnections.find((c) => c.value === Number(val));
+    setSelectedSSConnection(conn ?? null);
+  }}
+  placeholder="Select SS connection"
 />
-
-
-          <Dropdown
-            label="SS Connection"
-            options={filteredSSConnections ?? []}
-            value={ssConnection}
-            onChange={setSsConnection}
-            placeholder="Select SS connection"
-          />
 
           <Dropdown
             label="Reason"
