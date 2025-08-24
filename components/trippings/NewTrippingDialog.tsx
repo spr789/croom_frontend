@@ -41,11 +41,30 @@ export default function NewTrippingDialog({
   >(null);
 
   const [reason, setReason] = useState("");
-  const [severity, setSeverity] = useState<TrippingCreate["severity"] | "">(
-    ""
-  );
+  const [severity, setSeverity] = useState<TrippingCreate["severity"] | "">("");
+  const [fromIndication, setFromIndication] = useState("");
+  const [toIndication, setToIndication] = useState("");
   const [description, setDescription] = useState("");
-  const [trippingDatetime, setTrippingDatetime] = useState<string>("");
+// Function to get current local datetime in YYYY-MM-DDTHH:mm
+const getLocalDateTimeString = () => {
+  const now = new Date();
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  const year = now.getFullYear();
+  const month = pad(now.getMonth() + 1); // months are 0-based
+  const day = pad(now.getDate());
+  const hours = pad(now.getHours());
+  const minutes = pad(now.getMinutes());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Use for state and max
+const [trippingDatetime, setTrippingDatetime] = useState<string>(
+  getLocalDateTimeString()
+);
+const nowLocal = getLocalDateTimeString(); // max attribute
+
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -71,44 +90,49 @@ export default function NewTrippingDialog({
     reason &&
     selectedSSConnection;
 
-  const handleCreate = async () => {
-    if (!isFormValid) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
-
-    const payload: TrippingCreate = {
-      element_type: Number(elementType),
-      voltage_level: Number(voltage),
-      from_ss: selectedSSConnection?.from_ss ?? Number(fromSS), // use from SS from connection if selected
-      to_ss: selectedSSConnection?.to_ss ?? null,               // use to SS from connection if selected
-      number: selectedSSConnection?.number ?? 0,               // use number from connection if selected
-      tripping_datetime: trippingDatetime
-        ? new Date(trippingDatetime).toISOString()
-        : new Date().toISOString(),
-      restoration_datetime: null, // send null instead of empty string
-      srldc_code: "",
-      reason: Number(reason),
-      from_indication: "",
-      to_indication: "",
-      remarks: description,
+    const handleCreate = async () => {
+      if (!isFormValid) {
+        toast.error("Please fill all required fields.");
+        return;
+      }
+    
+      // Prevent future tripping date
+      if (trippingDatetime && new Date(trippingDatetime) > new Date()) {
+        toast.error("Tripping date cannot be in the future.");
+        return;
+      }
+    
+      const payload: TrippingCreate = {
+        element_type: Number(elementType),
+        voltage_level: Number(voltage),
+        from_ss: selectedSSConnection?.from_ss ?? Number(fromSS),
+        to_ss: selectedSSConnection?.to_ss ?? null,
+        number: selectedSSConnection?.number ?? 0,
+        tripping_datetime: trippingDatetime
+          ? new Date(trippingDatetime).toISOString()
+          : new Date().toISOString(),
+        restoration_datetime: null,
+        srldc_code: "",
+        reason: Number(reason),
+        from_indication: fromIndication,
+        to_indication: toIndication,
+        remarks: description,
+      };
+    
+      try {
+        setIsSubmitting(true);
+        const created = await createTripping(payload);
+        toast.success("Tripping logged successfully!");
+        console.log("Created tripping:", created);
+        onOpenChange(false);
+      } catch (error: any) {
+        console.error("Failed to create tripping:", error);
+        toast.error(error.response?.data?.message || "Failed to log tripping");
+      } finally {
+        setIsSubmitting(false);
+      }
     };
     
-    
-
-    try {
-      setIsSubmitting(true);
-      const created = await createTripping(payload);
-      toast.success("Tripping logged successfully!");
-      console.log("Created tripping:", created);
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error("Failed to create tripping:", error);
-      toast.error(error.response?.data?.message || "Failed to log tripping");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,14 +143,14 @@ export default function NewTrippingDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Log New Tripping</DialogTitle>
         </DialogHeader>
 
         {loading && <p className="text-sm text-gray-500">Loading...</p>}
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
           <Dropdown
             label="Circle"
             options={(masterData?.circles ?? []).map((c) => ({
@@ -174,17 +198,20 @@ export default function NewTrippingDialog({
 <Dropdown
   label="SS Connection"
   options={filteredSSConnections?.map((c) => ({
-    value: c.value,   // <-- use 'value' here
+    value: String(c.value), // convert number to string
     label: c.label,
-    data: c,          // store full object for later
+    data: c,
   })) ?? []}
-  value={selectedSSConnection?.value ?? ""}  // <-- match the option value
+  value={selectedSSConnection ? String(selectedSSConnection.value) : ""}
   onChange={(val) => {
-    const conn = filteredSSConnections.find((c) => c.value === Number(val));
+    const conn = filteredSSConnections.find(
+      (c) => c.value === Number(val) // convert back to number for lookup
+    );
     setSelectedSSConnection(conn ?? null);
   }}
   placeholder="Select SS connection"
 />
+
 
           <Dropdown
             label="Reason"
@@ -211,17 +238,41 @@ export default function NewTrippingDialog({
             placeholder="Select severity"
           />
 
+<div className="space-y-2">
+  <label>Tripping Date & Time</label>
+  <input
+    type="datetime-local"
+    className="w-full border rounded px-3 py-2"
+    value={trippingDatetime}
+    onChange={(e) => setTrippingDatetime(e.target.value)}
+    max={nowLocal} // prevents selecting future date
+  />
+</div>
+
+
           <div className="space-y-2">
-            <label>Tripping Date & Time</label>
+            <label>From Indication</label>
             <input
-              type="datetime-local"
+              type="text"
               className="w-full border rounded px-3 py-2"
-              value={trippingDatetime}
-              onChange={(e) => setTrippingDatetime(e.target.value)}
+              value={fromIndication}
+              onChange={(e) => setFromIndication(e.target.value)}
+              placeholder="Enter from indication"
             />
           </div>
 
           <div className="space-y-2">
+            <label>To Indication</label>
+            <input
+              type="text"
+              className="w-full border rounded px-3 py-2"
+              value={toIndication}
+              onChange={(e) => setToIndication(e.target.value)}
+              placeholder="Enter to indication"
+            />
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
             <label>Description / Remarks</label>
             <Textarea
               placeholder="Detailed description..."
@@ -231,7 +282,7 @@ export default function NewTrippingDialog({
             />
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 md:col-span-2">
             <Button
               className="flex-1"
               onClick={handleCreate}

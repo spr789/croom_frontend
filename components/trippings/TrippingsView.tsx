@@ -13,7 +13,7 @@ import TrippingCard from "@/components/trippings/TrippingCard";
 import NewTrippingDialog from "@/components/trippings/NewTrippingDialog";
 
 export default function TrippingsView() {
-  const { trippings, loading, error, createTripping, fetchTrippings, setTrippings } = useTrippings();
+  const { trippings, loading, error, createTripping, setTrippings } = useTrippings();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<"all" | Tripping["status"]>("all");
@@ -33,17 +33,14 @@ export default function TrippingsView() {
         t.element_type_display.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.from_ss_display.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (t.to_ss_display?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-  
+
       const matchesStatus = selectedStatus === "all" || t.status === selectedStatus;
-  
+
       return matchesSearch && matchesStatus;
     });
   }, [trippings, searchTerm, selectedStatus]);
-  
-  
-  
 
-  // Callbacks
+  // Handle creating new tripping
   const handleCreate = async (data: TrippingCreate) => {
     try {
       const created: Tripping = await createTripping(data);
@@ -53,10 +50,8 @@ export default function TrippingsView() {
       console.error(err);
     }
   };
-  
-  
-  
 
+  // Mark tripping as cleared
   const markCleared = (id: number) => {
     setTrippings((prev) =>
       prev.map((t) =>
@@ -75,8 +70,6 @@ export default function TrippingsView() {
       )
     );
   };
-  
-  
 
   return (
     <div className="space-y-6">
@@ -93,7 +86,7 @@ export default function TrippingsView() {
         <NewTrippingDialog
           open={isNewTrippingOpen}
           onOpenChange={setIsNewTrippingOpen}
-          onSubmit={handleCreate}  // <-- TS error
+          onSubmit={handleCreate}  // <-- call handleCreate when tripping is logged
           triggerLabel="New Tripping"
         />
       </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Tripping } from "@/lib/types/tripping";
+import type { Tripping, TrippingCreate } from "@/lib/types/tripping";
 import * as trippingService from "@/lib/services/tripping";
 
 export const useTrippings = () => {
@@ -22,7 +22,7 @@ export const useTrippings = () => {
   }, []);
 
   // Create a new tripping
-  const createTripping = useCallback(async (newTripping: Omit<Tripping, "id">) => {
+  const createTripping = useCallback(async (newTripping: TrippingCreate) => {
     setLoading(true);
     setError(null);
     try {

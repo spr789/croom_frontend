@@ -2,24 +2,9 @@
 
 import api from './api/client';
 import { ENDPOINTS } from './api/endpoints';
-import type { Tripping } from '../types/tripping';
+import type { Tripping, TrippingCreate } from '../types/tripping';
 
-// ✅ Define a type specifically for creation payload
-export interface TrippingCreate {
-  element_type: number;
-  voltage_level: number;
-  from_ss: number;         // required
-  to_ss: number | null;    // optional
-  number: number;          // feeder/bus number
-  tripping_datetime: string;
-  restoration_datetime?: string | null;
-  srldc_code?: string;
-  reason: number;
-  from_indication?: string;
-  to_indication?: string;
-  remarks?: string;
-  severity: "low" | "medium" | "high";
-}
+
 
 
 // ✅ Fetch existing trippings

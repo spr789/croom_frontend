@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, User } from "lucide-react";
+import { Clock, MapPin, User, ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Tripping } from "@/lib/types/tripping";
 import { getStatusColor, getStatusIcon } from "./trippingHelpers";
@@ -15,7 +15,7 @@ interface Props {
   actions?: ReactNode;
 }
 
-// Optional helper to flatten nested connection_info
+// Format main label for the card
 const formatTrippingLabel = (tripping: Tripping) => {
   const elementType = (tripping as any).connection_info?.element_type ?? tripping.element_type;
   const voltageLevel = (tripping as any).connection_info?.voltage_level ?? tripping.voltage_level;
@@ -23,12 +23,11 @@ const formatTrippingLabel = (tripping: Tripping) => {
   const toSS = (tripping as any).connection_info?.to_substation ?? tripping.to_ss;
   const number = (tripping as any).connection_info?.number ?? tripping.number;
 
-  return `${elementType}: ${voltageLevel} ${fromSS}${toSS ? ` → ${toSS}` : ""} - ${number ?? "-"}`;
+  return `${elementType}: ${voltageLevel} ${fromSS}${toSS ? ` - ${toSS}` : ""} - ${number ?? "-"}`;
 };
 
 export default function TrippingCard({ tripping, onMarkCleared, onMarkInvestigating, actions }: Props) {
-  // Debug: inspect tripping object
-  console.log("Tripping object:", tripping);
+  const status = tripping.restoration_datetime ? "cleared" : tripping.status || "active";
 
   return (
     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -36,21 +35,19 @@ export default function TrippingCard({ tripping, onMarkCleared, onMarkInvestigat
         <div className="flex items-center space-x-3">
           <div>
             <div className="flex items-center space-x-2 mb-1">
-              {getStatusIcon(tripping.restoration_datetime ? "cleared" : "active")}
+              {getStatusIcon(status)}
               <Badge
-                className={getStatusColor(tripping.restoration_datetime ? "cleared" : "active")}
+                className={getStatusColor(status)}
                 variant="outline"
               >
-                {(tripping.restoration_datetime ? "cleared" : "active").toUpperCase()}
+                {status.toUpperCase()}
               </Badge>
 
-              <span className="font-medium">
-                {formatTrippingLabel(tripping)}
-              </span>
+              <span className="font-medium">{formatTrippingLabel(tripping)}</span>
             </div>
 
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Reason: {tripping.reason?.name || "-"}
+              Reason: {tripping.reason || "-"}
             </p>
           </div>
         </div>
@@ -64,14 +61,45 @@ export default function TrippingCard({ tripping, onMarkCleared, onMarkInvestigat
           <Clock className="h-3 w-3" />
           <span>{new Date(tripping.tripping_datetime).toLocaleString()}</span>
         </div>
+
+        {tripping.restoration_datetime && (
+          <div className="flex items-center space-x-1">
+            <Clock className="h-3 w-3" />
+            <span>{new Date(tripping.restoration_datetime).toLocaleString()}</span>
+          </div>
+        )}
+
         <div className="flex items-center space-x-1">
           <MapPin className="h-3 w-3" />
           <span>{tripping.from_ss}</span>
         </div>
+
+        {tripping.to_ss && (
+          <div className="flex items-center space-x-1">
+            <ArrowRight className="h-3 w-3" />
+            <span>{tripping.to_ss}</span>
+          </div>
+        )}
+
+        {tripping.from_indication && (
+          <div className="flex items-center space-x-1">
+            <span className="font-medium">From:</span>
+            <span>{tripping.from_indication}</span>
+          </div>
+        )}
+
+        {tripping.to_indication && (
+          <div className="flex items-center space-x-1">
+            <span className="font-medium">To:</span>
+            <span>{tripping.to_indication}</span>
+          </div>
+        )}
+
         <div className="flex items-center space-x-1">
           <User className="h-3 w-3" />
           <span>{getEmployeeName() || "-"}</span>
         </div>
+
         {tripping.duration && (
           <div className="flex items-center space-x-1">
             <Clock className="h-3 w-3" />
@@ -80,7 +108,7 @@ export default function TrippingCard({ tripping, onMarkCleared, onMarkInvestigat
         )}
       </div>
 
-      {tripping.status === "active" && (
+      {status === "active" && (
         <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
           <div className="flex space-x-2">
             <Button
