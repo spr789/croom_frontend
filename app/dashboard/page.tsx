@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import WeatherBanner from "@/components/WeatherBanner";
 import DashboardOverview from "@/components/DashboardOverview";
 import TrippingsView from "@/components/trippings/TrippingsView";
-import OutagesView from "@/components/OutagesView";
+import OutagesView from "@/components/outages/OutagesView";
 import LineClearsView from "@/components/LineClearsView";
 import VoltageRegulationView from "@/components/VoltageRegulationView";
 import Sidebar from "@/components/Sidebar";
